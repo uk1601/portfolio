@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "@/components/theme-provider"
-import { contactInfo } from "@/config/portfolio-config"
+import { contactInfo } from "@/config"
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
 import { Mail, Github, Linkedin } from "lucide-react"
@@ -209,4 +209,3 @@ export default function ContactSection() {
     </section>
   )
 }
-

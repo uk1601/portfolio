@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "@/components/theme-provider"
-import { personalInfo } from "@/config/portfolio-config"
+import { personalInfo } from "@/config"
 
 /**
  * Footer Component
@@ -25,4 +25,3 @@ export default function Footer() {
     </footer>
   )
 }
-

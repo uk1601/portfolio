@@ -2,12 +2,35 @@
 
 import { useState, useRef } from "react"
 import { useTheme } from "@/components/theme-provider"
-import { projects } from "@/config/portfolio-config"
+// Update the import statement to include projectsConfig
+import { projects, projectsConfig } from "@/config"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { useInView } from "react-intersection-observer"
-import { Github, ArrowRight, ChevronDown } from "lucide-react"
+// In the imports section, add ChevronLeft and ChevronRight if not already imported
+import { Github, ArrowRight, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+// Utility function to convert Google Drive links to direct image URLs
+const getImageUrl = (url: string) => {
+  // Check if it's a Google Drive link
+  if (url && url.includes("drive.google.com")) {
+    // Extract the file ID from various Google Drive URL formats
+    let fileId = ""
+
+    // Format: https://drive.google.com/file/d/FILE_ID/view
+    const fileIdMatch = url.match(/\/d\/(.+?)\//) || url.match(/id=(.+?)(&|$)/)
+
+    if (fileIdMatch && fileIdMatch[1]) {
+      fileId = fileIdMatch[1]
+      // Use the thumbnail API which is more reliable for embedding
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`
+    }
+  }
+  // Return the original URL if it's not a Google Drive link or if extraction fails
+  return url || "/placeholder.svg"
+}
 
 /**
  * Projects Section Component
@@ -19,6 +42,14 @@ export default function ProjectsSection() {
   const { colors, theme } = useTheme()
   const [selectedProject, setSelectedProject] = useState<(typeof projects)[0] | null>(null)
   const [expandedTechTags, setExpandedTechTags] = useState<string | null>(null)
+  // First, add a new state to track whether additional projects are shown
+  // Add this near the top of the ProjectsSection component, after other useState declarations
+  const [showAllProjects, setShowAllProjects] = useState(false)
+  // Inside the ProjectsSection component, add a new state to track the current image index
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  // Replace the hardcoded initialProjectCount with the config value
+  // Remove this line:
+  // const initialProjectCount = 3 // Number of projects to show initially
   const sectionRef = useRef<HTMLElement>(null)
 
   // Scroll-based animations for section transition
@@ -31,14 +62,34 @@ export default function ProjectsSection() {
   const sectionOpacity = useTransform(scrollYProgress, [0, 0.1], [0, 1])
   const sectionY = useTransform(scrollYProgress, [0, 0.1], [50, 0])
 
-  // Filter visible projects
-  const visibleProjects = projects
+  // Replace the existing visibleProjects filtering with this updated version
+  // This should replace the current visibleProjects definition
+  const sortedProjects = projects
     .filter((project) => project.visible)
     .sort((a, b) => (a.preferenceOrder || 999) - (b.preferenceOrder || 999))
+
+  // And use the config value instead when calculating initial and additional projects:
+  // Get initial projects and additional projects
+  const initialProjects = sortedProjects.slice(0, projectsConfig.initialVisibleCount)
+  const additionalProjects = sortedProjects.slice(projectsConfig.initialVisibleCount)
+
+  // Determine which projects to display based on showAllProjects state
+  const visibleProjects = showAllProjects ? sortedProjects : initialProjects
+
+  // Add this function to toggle showing all projects
+  const toggleShowAllProjects = () => {
+    setShowAllProjects(!showAllProjects)
+  }
 
   // Handle tag expansion toggle
   const toggleTags = (projectId: string) => {
     setExpandedTechTags(expandedTechTags === projectId ? null : projectId)
+  }
+
+  // Add this function to reset the image index when a new project is selected
+  const handleViewDetails = (project: (typeof projects)[0]) => {
+    setCurrentImageIndex(0) // Reset to first image
+    setSelectedProject(project)
   }
 
   return (
@@ -107,17 +158,71 @@ export default function ProjectsSection() {
 
         {/* Projects list with subtle parallax animations */}
         <div className="space-y-16 md:space-y-24">
-          {visibleProjects.map((project, index) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              index={index}
-              isEven={index % 2 === 0}
-              expandedTags={expandedTechTags === project.id}
-              onExpandTags={() => toggleTags(project.id)}
-              onViewDetails={() => setSelectedProject(project)}
-            />
-          ))}
+          <AnimatePresence initial={false} mode="sync">
+            {visibleProjects.map((project, index) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: 0.6,
+                    delay:
+                      index < projectsConfig.initialVisibleCount
+                        ? 0.1 * index
+                        : 0.2 + 0.1 * (index - projectsConfig.initialVisibleCount),
+                  },
+                }}
+                exit={{
+                  opacity: 0,
+                  y: 20,
+                  transition: {
+                    duration: 0.3,
+                    delay: 0.05 * (sortedProjects.length - index),
+                  },
+                }}
+              >
+                <ProjectCard
+                  project={project}
+                  index={index}
+                  isEven={index % 2 === 0}
+                  expandedTags={expandedTechTags === project.id}
+                  onExpandTags={() => toggleTags(project.id)}
+                  // Update the onViewDetails prop in the ProjectCard component call
+                  onViewDetails={() => handleViewDetails(project)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {additionalProjects.length > 0 && (
+            <motion.div
+              className="flex justify-center mt-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+            >
+              <Button
+                onClick={toggleShowAllProjects}
+                className="rounded-full px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {showAllProjects ? (
+                  <>
+                    <span>Show Fewer Projects</span>
+                    <ChevronUp className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    <span>View More Projects</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          )}
         </div>
       </motion.div>
 
@@ -132,14 +237,71 @@ export default function ProjectsSection() {
               </DialogHeader>
 
               <div className="mt-6">
-                {/* Project Image */}
+                {/* Project Images Slideshow */}
                 <div className="relative w-full h-[300px] md:h-[400px] rounded-lg overflow-hidden mb-6">
-                  <Image
-                    src={selectedProject.images?.[0] || "/placeholder.svg"}
-                    alt={selectedProject.title}
-                    fill
-                    className="object-cover"
-                  />
+                  {selectedProject.images && selectedProject.images.length > 0 ? (
+                    <>
+                      {/* Current Image */}
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={getImageUrl(selectedProject.images[currentImageIndex] || "/placeholder.svg")}
+                          alt={`${selectedProject.title} - image ${currentImageIndex + 1}`}
+                          fill
+                          className="object-contain bg-gray-50 dark:bg-gray-900 transition-opacity duration-300"
+                        />
+                      </div>
+
+                      {/* Navigation Controls - only show if there are multiple images */}
+                      {selectedProject.images.length > 1 && (
+                        <>
+                          {/* Previous Button */}
+                          <button
+                            onClick={() =>
+                              setCurrentImageIndex((prev) =>
+                                prev === 0 ? selectedProject.images.length - 1 : prev - 1,
+                              )
+                            }
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all"
+                            aria-label="Previous image"
+                          >
+                            <ChevronLeft className="h-6 w-6" />
+                          </button>
+
+                          {/* Next Button */}
+                          <button
+                            onClick={() =>
+                              setCurrentImageIndex((prev) =>
+                                prev === selectedProject.images.length - 1 ? 0 : prev + 1,
+                              )
+                            }
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all"
+                            aria-label="Next image"
+                          >
+                            <ChevronRight className="h-6 w-6" />
+                          </button>
+
+                          {/* Image Indicators */}
+                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
+                            {selectedProject.images.map((_, index) => (
+                              <button
+                                key={index}
+                                onClick={() => setCurrentImageIndex(index)}
+                                className={`w-2 h-2 rounded-full transition-all ${
+                                  currentImageIndex === index ? "bg-white scale-125" : "bg-white/50 hover:bg-white/80"
+                                }`}
+                                aria-label={`Go to image ${index + 1}`}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    // Fallback when no images are available
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                      <p className="text-gray-500 dark:text-gray-400">No images available</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* GitHub Button */}
@@ -231,14 +393,8 @@ function ProjectCard({
   const additionalTags = project.technologies.slice(initialTagCount)
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
-      initial={{ opacity: 0 }}
-      whileInView={{
-        opacity: 1,
-        transition: { duration: 1.2, ease: "easeOut" },
-      }}
-      viewport={{ once: false, amount: 0.2 }}
       className={`flex flex-col ${isEven ? "md:flex-row" : "md:flex-row-reverse"} gap-8 bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-500`}
     >
       {/* Project Image with subtle parallax effect */}
@@ -261,7 +417,12 @@ function ProjectCard({
           }}
           className="w-full h-full"
         >
-          <Image src={project.images?.[0] || "/placeholder.svg"} alt={project.title} fill className="object-cover" />
+          <Image
+            src={getImageUrl(project.images?.[0] || "/placeholder.svg")}
+            alt={project.title}
+            fill
+            className="object-contain bg-gray-50 dark:bg-gray-900"
+          />
         </motion.div>
       </motion.div>
 
@@ -461,7 +622,6 @@ function ProjectCard({
           </motion.a>
         </motion.div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }
-

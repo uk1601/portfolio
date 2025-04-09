@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useTheme } from "@/components/theme-provider"
-import { personalInfo } from "@/config/portfolio-config"
+import { personalInfo } from "@/config"
 import { Moon, Sun, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useMobile } from "@/hooks/use-mobile"
 
 /**
  * Navbar Component
@@ -16,9 +15,25 @@ import { useMobile } from "@/hooks/use-mobile"
  */
 export default function Navbar() {
   const { theme, toggleTheme, colors } = useTheme()
-  const isMobile = useMobile()
+  const [isMobile, setIsMobile] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+
+  // Handle screen resize to detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    // Initial check
+    checkMobile()
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkMobile)
+
+    // Clean up event listener
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   // Handle scroll event to change navbar appearance
   useEffect(() => {
@@ -174,4 +189,3 @@ export default function Navbar() {
     </nav>
   )
 }
-

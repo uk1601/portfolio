@@ -2,7 +2,7 @@
 
 import { useRef } from "react"
 import { useTheme } from "@/components/theme-provider"
-import { personalInfo } from "@/config/portfolio-config"
+import { personalInfo } from "@/config"
 import { motion, useScroll, useTransform } from "framer-motion"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -17,9 +17,6 @@ import { ArrowDown } from "lucide-react"
 export default function AboutSection() {
   const { colors, theme } = useTheme()
   const sectionRef = useRef<HTMLElement>(null)
-
-  // Update the scroll animation configuration to create a more seamless transition from the hero section
-  // Replace the existing useScroll and transform hooks with these enhanced versions:
 
   // Scroll animation for this section with a larger offset to start earlier
   const { scrollYProgress } = useScroll({
@@ -55,9 +52,6 @@ export default function AboutSection() {
       className="py-20 relative overflow-hidden"
       style={{ backgroundColor: colors.aboutBackground }}
     >
-      {/* Update the background elements for more subtle parallax
-      // Replace the existing background elements div with: */}
-
       {/* Enhanced Background Elements with Parallax */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -67,8 +61,6 @@ export default function AboutSection() {
               theme === "light"
                 ? "radial-gradient(circle, rgba(0, 102, 204, 0.03) 0%, rgba(0, 102, 204, 0.01) 70%, transparent 100%)"
                 : "radial-gradient(circle, rgba(10, 132, 255, 0.06) 0%, rgba(10, 132, 255, 0.02) 70%, transparent 100%)",
-          }}
-          style={{
             y: useTransform(scrollYProgress, [0, 1], [50, -100]),
             opacity: useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.6, 0.6, 0]),
             scale: useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 1.1]),
@@ -81,8 +73,6 @@ export default function AboutSection() {
               theme === "light"
                 ? "radial-gradient(circle, rgba(52, 199, 89, 0.03) 0%, rgba(52, 199, 89, 0.01) 70%, transparent 100%)"
                 : "radial-gradient(circle, rgba(48, 209, 88, 0.06) 0%, rgba(48, 209, 88, 0.02) 70%, transparent 100%)",
-          }}
-          style={{
             y: useTransform(scrollYProgress, [0, 1], [-30, 70]),
             opacity: useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0]),
             scale: useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 1.05]),
@@ -91,22 +81,46 @@ export default function AboutSection() {
       </div>
 
       <motion.div className="container mx-auto px-4" style={{ opacity, y, scale }}>
-        <motion.h2
-          className="text-3xl md:text-4xl font-bold mb-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+        {/* Section Header with Decorative Lines - Consistent with other sections */}
+        <motion.div
+          className="flex items-center justify-center mb-12"
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
-          About Me
-        </motion.h2>
-
-        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
-          {/* Update the profile image container to include the opacity transform
-          // Replace the existing motion.div for the profile image with: */}
-
           <motion.div
-            className="w-full md:w-2/5"
+            className="h-[1px] w-12"
+            style={{
+              background:
+                theme === "light"
+                  ? "linear-gradient(to right, transparent, rgba(0, 102, 204, 0.5))"
+                  : "linear-gradient(to right, transparent, rgba(10, 132, 255, 0.5))",
+            }}
+            initial={{ width: 0 }}
+            whileInView={{ width: 48 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          ></motion.div>
+          <h2 className="text-3xl md:text-4xl font-bold mx-4">About Me</h2>
+          <motion.div
+            className="h-[1px] w-12"
+            style={{
+              background:
+                theme === "light"
+                  ? "linear-gradient(to left, transparent, rgba(0, 102, 204, 0.5))"
+                  : "linear-gradient(to left, transparent, rgba(10, 132, 255, 0.5))",
+            }}
+            initial={{ width: 0 }}
+            whileInView={{ width: 48 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          ></motion.div>
+        </motion.div>
+
+        <div className="flex flex-col md:flex-row items-center justify-center md:items-stretch gap-8 md:gap-10">
+          <motion.div
+            className="w-full md:w-2/5 flex items-center justify-center md:justify-end md:pr-4 md:pt-4"
             initial={{ opacity: 0, x: -100 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false, amount: 0.3 }}
@@ -122,7 +136,7 @@ export default function AboutSection() {
             }}
           >
             <motion.div
-              className="relative w-64 h-64 md:w-80 md:h-80 mx-auto overflow-hidden rounded-full border-4 shadow-lg"
+              className="relative w-60 h-60 md:w-64 md:h-64 overflow-hidden rounded-full border-4 shadow-lg"
               style={{ borderColor: colors.primary }}
               transition={{
                 duration: 0.6,
@@ -130,20 +144,17 @@ export default function AboutSection() {
               }}
             >
               <Image
-                src="/placeholder.svg?height=400&width=400&text=Your+Photo"
+                src="/images/profile.jpeg"
                 alt={personalInfo.name}
                 fill
-                className="object-cover"
+                className="object-cover object-top"
                 priority
               />
             </motion.div>
           </motion.div>
 
-          {/* Update the about text animation to be more coordinated with the image
-          // Replace the existing motion.div for the about text with: */}
-
           <motion.div
-            className="w-full md:w-3/5"
+            className="w-full md:w-3/5 flex items-start md:items-center md:pl-4 md:h-full"
             initial={{ opacity: 0, x: 100 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false, amount: 0.3 }}
@@ -188,16 +199,33 @@ export default function AboutSection() {
           transition={{ duration: 0.7, delay: 0.6 }}
         >
           <motion.button
-            onClick={scrollToProjects}
+            onClick={() => {
+              const projectsSection = document.getElementById("projects")
+              if (projectsSection) {
+                // Simple scroll with a small delay for a more deliberate feel
+                window.scrollTo({
+                  top: projectsSection.offsetTop,
+                  behavior: "smooth",
+                })
+
+                // Add a small delay to make the scroll feel more deliberate
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: projectsSection.offsetTop,
+                    behavior: "smooth",
+                  })
+                }, 50)
+              }
+            }}
             className="flex flex-col items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-            whileHover={{ y: 3 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ y: 3, transition: { duration: 0.2 } }} // Faster hover response
+            whileTap={{ scale: 0.95, transition: { duration: 0.1 } }} // Immediate tap feedback
           >
             <span className="text-sm uppercase tracking-widest mb-2">View Projects</span>
             <motion.div
               animate={{ y: [0, 5, 0] }}
               transition={{
-                duration: 1.5,
+                duration: 2, // Moderate animation speed
                 repeat: Number.POSITIVE_INFINITY,
                 repeatType: "loop",
                 ease: "easeInOut",
@@ -211,4 +239,3 @@ export default function AboutSection() {
     </section>
   )
 }
-

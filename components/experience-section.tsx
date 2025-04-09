@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "@/components/theme-provider"
-import { experiences, education } from "@/config/portfolio-config"
+import { experiences, education } from "@/config"
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
 import { Briefcase, GraduationCap, MapPin, Calendar } from "lucide-react"
@@ -220,4 +220,3 @@ function TimelineItem({
     </div>
   )
 }
-

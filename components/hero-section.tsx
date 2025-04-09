@@ -2,19 +2,19 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useTheme } from "@/components/theme-provider"
-import { personalInfo } from "@/config/portfolio-config"
-import { Button } from "@/components/ui/button"
-import { Download, ChevronDown } from "lucide-react"
+import { personalInfo } from "@/config"
+import { ChevronDown } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
+import Image from "next/image"
 
 /**
  * Hero Section Component
  *
  * A full-screen introduction section with:
- * - Animated typewriter effect for the name
+ * - Circular profile photo
+ * - Smooth animated typewriter effect for the name
  * - Professional title
  * - Brief tagline
- * - Resume download button
  * - Animated scroll indicator
  * - Apple-style background animations
  */
@@ -35,25 +35,31 @@ export default function HeroSection() {
   const y = useTransform(scrollYProgress, [0, 0.5], [0, 100])
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95])
 
-  // Typewriter effect for the name
+  // Improved smoother typewriter effect for the name
   useEffect(() => {
     const text = personalInfo.name
     let currentIndex = 0
-    let timer: NodeJS.Timeout
 
-    if (isTyping) {
-      timer = setInterval(() => {
-        if (currentIndex <= text.length) {
-          setDisplayText(text.substring(0, currentIndex))
-          currentIndex++
-        } else {
-          clearInterval(timer)
-          setIsTyping(false)
-        }
-      }, 100)
+    const typeNextChar = () => {
+      if (currentIndex <= text.length) {
+        setDisplayText(text.substring(0, currentIndex))
+        currentIndex++
+
+        // Randomize the typing speed slightly for a more natural effect
+        const randomDelay = Math.random() * 30 + 50 // Between 50-80ms
+        setTimeout(typeNextChar, randomDelay)
+      } else {
+        setIsTyping(false)
+      }
     }
 
-    return () => clearInterval(timer)
+    if (isTyping) {
+      typeNextChar()
+    }
+
+    return () => {
+      // No cleanup needed as we're using setTimeout
+    }
   }, [isTyping])
 
   // Scroll to About section with smooth animation
@@ -125,9 +131,31 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
-          className="space-y-6"
+          className="space-y-3"
         >
-          {/* Name with Typewriter Effect */}
+          {/* Profile Photo */}
+          <motion.div
+            className="mx-auto"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              duration: 0.8,
+              ease: [0.25, 0.1, 0.25, 1],
+              delay: 0.2,
+            }}
+          >
+            <div className="relative w-56 h-56 md:w-72 md:h-72 mx-auto mb-8 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/uk.JPG-8j3fIDgOloRIXBr0hgJod2lRkZAXju.jpeg"
+                alt={personalInfo.name}
+                fill
+                className="object-cover object-center scale-110"
+                priority
+              />
+            </div>
+          </motion.div>
+
+          {/* Name with Smoother Typewriter Effect */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
             <span className="inline-block min-h-[1.5em]">{displayText}</span>
             <span
@@ -137,7 +165,7 @@ export default function HeroSection() {
 
           {/* Professional Title with Fade In */}
           <motion.h2
-            className="text-xl md:text-2xl font-medium text-gray-600 dark:text-gray-300"
+            className="text-xl md:text-2xl font-medium text-gray-600 dark:text-gray-300 -mt-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
@@ -154,29 +182,6 @@ export default function HeroSection() {
           >
             {personalInfo.tagline}
           </motion.p>
-
-          {/* Resume Button with Fade In */}
-          <motion.div
-            className="mt-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.1 }}
-          >
-            <Button
-              size="lg"
-              className="rounded-full px-6"
-              style={{
-                backgroundColor: colors.primary,
-                color: "white",
-              }}
-              asChild
-            >
-              <a href={personalInfo.resumeUrl} download>
-                <Download className="mr-2 h-4 w-4" />
-                Download Resume
-              </a>
-            </Button>
-          </motion.div>
         </motion.div>
       </motion.div>
 
@@ -191,19 +196,37 @@ export default function HeroSection() {
             delay: 1.5,
             ease: [0.25, 0.1, 0.25, 1],
           }}
-          onClick={scrollToAbout}
+          onClick={() => {
+            // Replace the existing scrollToAbout function call with this smoother scroll implementation
+            const aboutSection = document.getElementById("about")
+            if (aboutSection) {
+              window.scrollTo({
+                top: aboutSection.offsetTop,
+                behavior: "smooth",
+              })
+              // Add a small delay to make the scroll feel more deliberate
+              setTimeout(() => {
+                window.scrollTo({
+                  top: aboutSection.offsetTop,
+                  behavior: "smooth",
+                })
+              }, 50)
+            }
+          }}
           whileHover={{
             y: 2,
             scale: 1.05,
             transition: {
-              duration: 0.3,
+              duration: 0.5, // Slower hover animation
               ease: "easeOut",
             },
           }}
         >
-          {/* More visible text label */}
+          {/* More visible text label with improved contrast */}
           <motion.p
-            className="text-xs font-medium text-gray-200 dark:text-gray-300 mb-2 tracking-[0.15em] uppercase"
+            className={`text-xs font-medium mb-2 tracking-[0.15em] uppercase ${
+              theme === "light" ? "text-gray-700 dark:text-gray-300" : "text-gray-200 dark:text-gray-300"
+            }`}
             animate={{
               opacity: [0.8, 1, 0.8],
             }}
@@ -223,9 +246,11 @@ export default function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
           >
-            {/* Outer glow for better visibility */}
+            {/* Outer glow for better visibility - enhanced for light theme */}
             <motion.div
-              className="absolute -inset-1.5 rounded-full bg-blue-500/20 dark:bg-blue-400/30 blur-md -z-10"
+              className={`absolute -inset-1.5 rounded-full blur-md -z-10 ${
+                theme === "light" ? "bg-blue-500/40" : "bg-blue-400/30"
+              }`}
               animate={{
                 opacity: [0.5, 0.8, 0.5],
                 scale: [0.95, 1.05, 0.95],
@@ -239,14 +264,20 @@ export default function HeroSection() {
             />
 
             <motion.div
-              className="w-6 h-10 rounded-full border-2 border-white/50 dark:border-gray-400/70 backdrop-blur-sm flex items-center justify-center overflow-hidden"
+              className={`w-6 h-10 rounded-full flex items-center justify-center overflow-hidden ${
+                theme === "light"
+                  ? "border-2 border-gray-600/70 bg-white/80"
+                  : "border-2 border-gray-400/70 backdrop-blur-sm"
+              }`}
               style={{
-                background: "linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.1)",
+                boxShadow:
+                  theme === "light"
+                    ? "0 4px 20px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1)"
+                    : "0 4px 20px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.1)",
               }}
             >
               <motion.div
-                className="w-1.5 h-2.5 rounded-full bg-white dark:bg-gray-200"
+                className={`w-1.5 h-2.5 rounded-full ${theme === "light" ? "bg-gray-700" : "bg-gray-200"}`}
                 animate={{
                   y: [0, 4, 0],
                   opacity: [0.6, 1, 0.6],
@@ -261,7 +292,7 @@ export default function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* More visible chevron */}
+          {/* More visible chevron with improved contrast for light theme */}
           <motion.div
             className="mt-2"
             animate={{
@@ -276,11 +307,13 @@ export default function HeroSection() {
               delay: 0.3,
             }}
           >
-            <ChevronDown className="h-4 w-4 text-white/90 dark:text-gray-300/90" strokeWidth={2} />
+            <ChevronDown
+              className={`h-4 w-4 ${theme === "light" ? "text-gray-700" : "text-gray-300/90"}`}
+              strokeWidth={2}
+            />
           </motion.div>
         </motion.div>
       </div>
     </section>
   )
 }
-

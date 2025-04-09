@@ -6,7 +6,7 @@ import SkillsSection from "@/components/skills-section"
 import ExperienceSection from "@/components/experience-section"
 import ContactSection from "@/components/contact-section"
 import Footer from "@/components/footer"
-import { sectionVisibility } from "@/config/portfolio-config"
+import { sectionVisibility } from "@/config"
 
 /**
  * Main Page Component
@@ -31,4 +31,3 @@ export default function Home() {
     </main>
   )
 }
-

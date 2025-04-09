@@ -1,9 +1,13 @@
 "use client"
 
 import { useTheme } from "@/components/theme-provider"
-import { skills } from "@/config/portfolio-config"
+import { skills } from "@/config"
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
+import Image from "next/image"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { ChevronDown, ChevronUp } from "lucide-react"
 
 /**
  * Skills Section Component
@@ -18,9 +22,15 @@ export default function SkillsSection() {
     triggerOnce: false,
   })
 
-  // Get visible skill categories
+  // Add state to control tools section visibility
+  const [showTools, setShowTools] = useState(false)
+
+  // Get key skills
+  const keySkills = skills.keySkills?.items.filter((skill) => skill.visible) || []
+
+  // Get visible skill categories for the tools section
   const visibleCategories = Object.entries(skills)
-    .filter(([_, category]) => category.visible)
+    .filter(([key, category]) => key !== "keySkills" && category.visible)
     .map(([key, category]) => ({ key, ...category }))
 
   // Refined background gradients for both themes
@@ -139,14 +149,204 @@ export default function SkillsSection() {
           </motion.p>
         </motion.div>
 
-        {/* Skills Categories - More compact grid with smaller gap */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {visibleCategories.map((category, categoryIndex) => (
-            <SkillCategory key={category.key} category={category} index={categoryIndex} inView={inView} />
-          ))}
+        {/* Key Skills Section */}
+        <div className="mb-16">
+          <motion.h3
+            className="text-xl font-semibold mb-6 text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            {skills.keySkills?.title || "Key Skills"}
+          </motion.h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {keySkills.map((skill, index) => (
+              <KeySkillCard key={skill.name} skill={skill} index={index} inView={inView} />
+            ))}
+          </div>
         </div>
+
+        {/* Tools Toggle Button */}
+        <div className="flex justify-center mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Button
+              onClick={() => setShowTools(!showTools)}
+              variant="outline"
+              className="flex items-center gap-2 px-6 py-2 rounded-full"
+            >
+              {showTools ? (
+                <>
+                  <span>Hide Tools</span>
+                  <ChevronUp className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  <span>Show Tools</span>
+                  <ChevronDown className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </motion.div>
+        </div>
+
+        {/* Tools Section - Conditionally rendered based on showTools state */}
+        {showTools && (
+          <>
+            <motion.h3
+              className="text-xl font-semibold mb-6 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              Tools
+            </motion.h3>
+
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.5 }}
+            >
+              {visibleCategories.map((category, categoryIndex) => (
+                <SkillCategory key={category.key} category={category} index={categoryIndex} inView={inView} />
+              ))}
+            </motion.div>
+          </>
+        )}
       </div>
     </section>
+  )
+}
+
+// Key Skill Card Component
+function KeySkillCard({
+  skill,
+  index,
+  inView,
+}: {
+  skill: any
+  index: number
+  inView: boolean
+}) {
+  const { theme } = useTheme()
+  const { ref: cardRef, inView: isCardInView } = useInView({
+    threshold: 0.1,
+    triggerOnce: false,
+  })
+
+  // Get color based on skill name
+  const getSkillColor = () => {
+    if (skill.name.includes("Machine Learning") || skill.name.includes("AI") || skill.name.includes("Deep Learning")) {
+      return {
+        bg: theme === "light" ? "bg-purple-50" : "bg-purple-900/20",
+        border: theme === "light" ? "border-purple-200" : "border-purple-800/30",
+        text: theme === "light" ? "text-purple-700" : "text-purple-400",
+        accent: theme === "light" ? "#BF5AF2" : "#BF5AF2",
+      }
+    } else if (skill.name.includes("Data") || skill.name.includes("Database")) {
+      return {
+        bg: theme === "light" ? "bg-blue-50" : "bg-blue-900/20",
+        border: theme === "light" ? "border-blue-200" : "border-blue-800/30",
+        text: theme === "light" ? "text-blue-700" : "text-blue-400",
+        accent: theme === "light" ? "#0066CC" : "#0A84FF",
+      }
+    } else if (skill.name.includes("Cloud") || skill.name.includes("Software")) {
+      return {
+        bg: theme === "light" ? "bg-green-50" : "bg-green-900/20",
+        border: theme === "light" ? "border-green-200" : "border-green-800/30",
+        text: theme === "light" ? "text-green-700" : "text-green-400",
+        accent: theme === "light" ? "#34C759" : "#30D158",
+      }
+    } else if (skill.name.includes("Computer Vision") || skill.name.includes("NLP")) {
+      return {
+        bg: theme === "light" ? "bg-amber-50" : "bg-amber-900/20",
+        border: theme === "light" ? "border-amber-200" : "border-amber-800/30",
+        text: theme === "light" ? "text-amber-700" : "text-amber-400",
+        accent: theme === "light" ? "#FF9500" : "#FF9F0A",
+      }
+    } else {
+      return {
+        bg: theme === "light" ? "bg-teal-50" : "bg-teal-900/20",
+        border: theme === "light" ? "border-teal-200" : "border-teal-800/30",
+        text: theme === "light" ? "text-teal-700" : "text-teal-400",
+        accent: theme === "light" ? "#2AC9B9" : "#30D5C8",
+      }
+    }
+  }
+
+  const colorClasses = getSkillColor()
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial="hidden"
+      animate={isCardInView ? "visible" : "hidden"}
+      variants={{
+        hidden: {
+          opacity: 0,
+          y: 30,
+          boxShadow: "0 0 0 rgba(0,0,0,0)",
+        },
+        visible: {
+          opacity: 1,
+          y: 0,
+          boxShadow: theme === "light" ? "0 8px 20px rgba(0,0,0,0.04)" : "0 8px 20px rgba(0,0,0,0.15)",
+          transition: {
+            duration: 0.6,
+            ease: [0.22, 1, 0.36, 1],
+            delay: index * 0.1,
+          },
+        },
+      }}
+      whileHover={{
+        y: -3,
+        boxShadow: theme === "light" ? "0 12px 25px rgba(0,0,0,0.06)" : "0 12px 25px rgba(0,0,0,0.2)",
+        transition: {
+          duration: 0.3,
+          ease: "easeOut",
+        },
+      }}
+      className={`rounded-xl overflow-hidden border ${colorClasses.border} ${colorClasses.bg} backdrop-blur-sm h-full`}
+    >
+      <div className="p-5 flex flex-col h-full">
+        <div className="flex items-center mb-3">
+          <div className="w-10 h-10 mr-3 relative">
+            <Image
+              src={skill.icon || "/placeholder.svg"}
+              alt={skill.name}
+              width={40}
+              height={40}
+              className="object-contain"
+            />
+          </div>
+          <h4 className={`text-lg font-bold ${colorClasses.text}`}>{skill.name}</h4>
+        </div>
+
+        {/* Proficiency Bar */}
+        <div className="mb-4">
+          <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{
+                backgroundColor: colorClasses.accent,
+                width: `${skill.proficiency}%`,
+              }}
+              initial={{ width: 0 }}
+              animate={isCardInView ? { width: `${skill.proficiency}%` } : { width: 0 }}
+              transition={{ duration: 1, delay: index * 0.1 + 0.3 }}
+            />
+          </div>
+        </div>
+
+        <p className="text-sm text-gray-600 dark:text-gray-300 flex-grow">{skill.summary}</p>
+      </div>
+    </motion.div>
   )
 }
 
@@ -316,13 +516,31 @@ function SkillCategory({
               className="group"
             >
               <div className="flex flex-col items-center p-2 rounded-lg bg-white/30 dark:bg-gray-800/30 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300 h-full backdrop-blur-sm">
-                {/* Smaller icon */}
+                {/* Skill Icon */}
                 <div
-                  className={`w-7 h-7 ${categoryColorClasses.icon} rounded-full flex items-center justify-center mb-1 group-hover:scale-110 transition-transform duration-300`}
+                  className={`w-8 h-8 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 overflow-hidden`}
                 >
-                  <span className={`text-[10px] ${categoryColorClasses.text}`}>{skill.name.charAt(0)}</span>
+                  {skill.icon ? (
+                    <div className="relative w-6 h-6">
+                      <Image
+                        src={skill.icon || "/placeholder.svg"}
+                        alt={skill.name}
+                        fill
+                        className="object-contain"
+                        style={{
+                          filter: theme === "dark" ? "brightness(1.2)" : "none",
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={`w-7 h-7 ${categoryColorClasses.icon} rounded-full flex items-center justify-center`}
+                    >
+                      <span className={`text-[10px] ${categoryColorClasses.text}`}>{skill.name.charAt(0)}</span>
+                    </div>
+                  )}
                 </div>
-                {/* Smaller text */}
+                {/* Skill Name */}
                 <span className="text-xs font-medium text-center text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300 line-clamp-2">
                   {skill.name}
                 </span>
@@ -334,4 +552,3 @@ function SkillCategory({
     </motion.div>
   )
 }
-

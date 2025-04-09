@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { themeConfig } from "@/config/portfolio-config"
+import { themeConfig } from "@/config"
 
 type Theme = "light" | "dark"
 
@@ -85,4 +85,3 @@ export const useTheme = () => {
 
   return context
 }
-
